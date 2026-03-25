@@ -30,11 +30,43 @@ Monlabbing is a project complete with:
 2. Unzip the file
 3. Move the contents of the file into your preferred folder
 4. rename .env_default to .env
-5. set the unset values in .env
+5. set the any unset values in .env
 6. copy .env into ./Backend/db_config/pgbouncer/.env
 7. run the docker-compose.yaml
 8. test the website at https://localhost:7760/app/
-9. you might see a "website insecure" warning, that is because the ssl certificate is self-signed to maintain portability.
+- you might see a "website insecure" warning, that is because the ssl certificate is self-signed to maintain portability.
+9. Done!
+
+## Project structure
+
+> ./Backend | Where the backend lives
+
+> ./Frontend | This will be served statically at /app/
+
+> ./Backend/Backups | Local Backups
+
+> ./Backend/Databases | Stores database data
+
+> ./Backend/db_config | Store pgbouncer, prometheus, and database config
+
+> ./Backend/Express | Express backend
+
+> ./Backend/Nginx | Nginx config
+
+> ./Backend/Monitoring | grafana
+
+> ./Backend/db_config/redis_xyz | redis config
+
+> ./Backend/db_config/postgres
+> ./Backend/db_config/postgres_replica | postgreSQL instance's config
+
+> ./Backend/db_config/timescale | timescaledDB's config
+
+## URI/URL structure
+
+> /app/ | Main app
+
+> /api/ | Where the endpoints lives
 
 ## Miscellaneous Info
 
