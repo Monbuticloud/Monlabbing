@@ -1,0 +1,218 @@
+version: "3.9"
+name: monbutbetter
+services:
+
+  postgres:
+    image: dhi.io/postgres:15-alpine3.22
+    container_name: postgres_main
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./Backend/Databases/Postgres_main:/var/lib/postgresql/data
+      - ./Backend/db_config/postgres:/etc/postgres
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      backend:
+        aliases:
+          - postgres-write
+
+  postgres_replica:
+    image: dhi.io/postgres:15-alpine3.22
+    container_name: postgres_replica
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./Backend/Databases/Postgres_replica:/var/lib/postgresql/data
+      - ./Backend/db_config/postgres_replica:/etc/postgres
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./Backend/Databases/Timescale:/var/lib/postgresql/data
+      - ./Backend/db_config/timescale:/etc/postgres
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U ${METRICS_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  pgbouncer:
+    image: edoburu/pgbouncer
+    container_name: pgbouncer
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./Backend/db_config/pgbouncer:/etc/pgbouncer
+    ports:
+      - "6432:6432"
+    networks:
+      backend:
+        aliases:
+          - postgres-pool
+
+  redis_hot:
+    image: redis:7-alpine
+    container_name: redis_hot
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_HOT_PASSWORD}
+      --appendonly yes
+      --maxmemory 100mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - ./Backend/Databases/Redis_hot:/data
+    healthcheck:
+      test: ["CMD","redis-cli","-a","${REDIS_HOT_PASSWORD}","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  redis_analytics:
+    image: redis:7-alpine
+    container_name: redis_analytics
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_ANALYTICS_PASSWORD}
+      --appendonly yes
+      --maxmemory 200mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - ./Backend/Databases/Redis_analytics:/data
+    healthcheck:
+      test: ["CMD","redis-cli","-a","${REDIS_ANALYTICS_PASSWORD}","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  express:
+    build: ./Backend/Express
+    container_name: express_backend
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      postgres_replica:
+        condition: service_healthy
+      redis_hot:
+        condition: service_healthy
+      redis_analytics:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./Backend/Express:/app
+    environment:
+      DATABASE_WRITE: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-pool:6432/${POSTGRES_DB}
+      DATABASE_READ: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_replica:5432/${POSTGRES_DB}
+
+      REDIS_HOT: redis://:${REDIS_HOT_PASSWORD}@redis_hot:6379
+      REDIS_ANALYTICS: redis://:${REDIS_ANALYTICS_PASSWORD}@redis_analytics:6379
+
+      METRICS_DB: postgres://${METRICS_USER}:${METRICS_PASSWORD}@timescaledb:5432/${METRICS_DB}
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_gateway
+    restart: unless-stopped
+    depends_on:
+      express:
+        condition: service_started
+    volumes:
+      - ./Frontend/Dist:/usr/share/nginx/html
+      - ./Backend/db_config/nginx:/etc/nginx/conf.d
+    ports:
+      - "7760:80"
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./Backend/db_config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - ./Backend/Databases/Grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+  postgres_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    container_name: postgres_exporter
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  redis_exporter_hot:
+    image: oliver006/redis_exporter
+    container_name: redis_exporter_hot
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://:${REDIS_HOT_PASSWORD}@redis_hot:6379
+    depends_on:
+      redis_hot:
+        condition: service_healthy
+    networks:
+      - backend
+
+  redis_exporter_analytics:
+    image: oliver006/redis_exporter
+    container_name: redis_exporter_analytics
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://:${REDIS_ANALYTICS_PASSWORD}@redis_analytics:6379
+    depends_on:
+      redis_analytics:
+        condition: service_healthy
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

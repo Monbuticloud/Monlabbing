@@ -1,0 +1,7 @@
+# Wildcard just in case
+**/.env
+.env
+Backend/Databases
+# Ignore pgbouncer configuration files, the ini is not ignored because it uses the .env file and userlist.txt
+Backend/db_config/pgbouncer/.env
+Backend/db_config/pgbouncer/userlist.txt
