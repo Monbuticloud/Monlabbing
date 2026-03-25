@@ -26,6 +26,15 @@ Monlabbing is a project complete with:
 
 ## How to Run It Yourself
 
+1. Clone the repository
+2. Unzip the file
+3. Move the contents of the file into your preferred folder
+4. rename .env_default to .env
+5. set the unset values in .env
+6. copy .env into ./Backend/db_config/pgbouncer/.env
+7. run the docker-compose.yaml
+8. test the website at https://localhost:7760/app/
+9. you might see a "website insecure" warning, that is because the ssl certificate is self-signed to maintain portability.
 
 ## Miscellaneous Info
 
