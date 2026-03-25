@@ -2,6 +2,8 @@
 
 ![Development Status: Alpha](https://img.shields.io/badge/Development_status-Alpha-red?style=for-the-badge)
 
+[![Snyk Vulnerabilities](https://snyk.io/test/github/monbuticloud/monlabbing/badge.svg)](https://snyk.io/test/github/monbuticloud/monlabbing)   
+
 ## Project Tech Stack
 
 Monlabbing is a project complete with:
@@ -34,8 +36,8 @@ Monlabbing is a project complete with:
 6. copy .env into ./Backend/db_config/pgbouncer/.env
 7. run the docker-compose.yaml
 8. test the website at https://localhost:7760/app/
-- you might see a "website insecure" warning, that is because the ssl certificate is self-signed to maintain portability.
-9. Done!
+> **Note:** you might see a "website insecure" warning, that is because the SSL certificate is self-signed to maintain portability.
+9. Setup Complete
 
 ## Project structure
 
@@ -53,14 +55,14 @@ Monlabbing is a project complete with:
 
 > ./Backend/Nginx | Nginx config
 
-> ./Backend/Monitoring | grafana
+> ./Backend/Monitoring | Grafana
 
-> ./Backend/db_config/redis_xyz | redis config
+> ./Backend/db_config/redis_xyz | Redis config
 
 > ./Backend/db_config/postgres
-> ./Backend/db_config/postgres_replica | postgreSQL instance's config
+> ./Backend/db_config/postgres_replica | PostgreSQL instance's config
 
-> ./Backend/db_config/timescale | timescaledDB's config
+> ./Backend/db_config/timescale | TimescaledDB's config
 
 ## URI/URL structure
 
