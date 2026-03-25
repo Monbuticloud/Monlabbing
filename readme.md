@@ -1,6 +1,8 @@
 # Monlabbing
 
-## What does this project contain?
+![Static Badge](https://img.shields.io/badge/Developement_status-Alpha-red?style=for-the-badge)
+
+## Project Tech Stack
 
 Monlabbing is a project complete with
 
@@ -16,7 +18,7 @@ Monlabbing is a project complete with
   - Postgresql
   - Postgresql replica
   - TimescaledDB
-  - Redis (for flusing into TimescaledDB)
+  - Redis (for flushing into TimescaledDB)
   - Redis (Hot cache)
   - Alerts with webhooks
   - Prometheus + Grafana
@@ -29,6 +31,8 @@ Monlabbing is a project complete with
 Project starting date: 2026
 
 Name of Creator: Nguyễn hoàng Quốc Anh
+
+# License
 
 [Monlabbing](https://github.com/Monbuticloud/Monlabbing) © 2026 by [Nguyễn hoàng Quốc Anh (Alias: Monbuticloud)](https://github.com/Monbuticloud/) is licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/)  
 ![CC](https://mirrors.creativecommons.org/presskit/icons/cc.svg) ![BY](https://mirrors.creativecommons.org/presskit/icons/by.svg) ![SA](https://mirrors.creativecommons.org/presskit/icons/sa.svg)
